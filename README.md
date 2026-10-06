@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# C100 Slates
 
-## Getting Started
+Web UI for sending slate images to the 8 delay players on Lawo/Arkona C100 units.
 
-First, run the development server:
+- **Left:** add C100s by IP address. Each card shows its 8 players, the video standard and colorspace used for encoding, and a reachability dot.
+- **Right:** image library. Drop or upload PNG/JPG/etc. Images are letterboxed to the device's resolution when sent.
+- **Send:** drag an image onto a player, or click a player and pick an image.
+- **Saved states tab:** snapshot which image is on any set of players, across any C100s, and put them all back with **Apply**. Tick *Apply this state when the container restarts* to re-send it automatically on boot. Unreachable players are retried for about 9 minutes, in case the C100s come up after the host.
+
+Everything (devices, images, saved states) is stored in `./data` next to `docker-compose.yml`, so it survives container rebuilds and host reboots. Set `DATA_PATH` to store it elsewhere, e.g. `DATA_PATH=/srv/c100-slates docker compose up -d`.
+
+## Deploy
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <this repo> c100-slates
+cd c100-slates
+docker compose up -d --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://<host>:3000`. To use a different port, run `PORT=8080 docker compose up -d`, or put `PORT=8080` in a `.env` file next to `docker-compose.yml`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The container needs HTTP (port 80) access to the C100s, so the Docker host must be on the same network.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To update:
 
-## Learn More
+```bash
+git pull && docker compose up -d --build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## How it works
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Sending an image runs the same conversion as `upload_batch.js` on the server: RGB → 10-bit YCbCr (BT.2020/2100/709/601) → BID frame (JSON header + packed 4:2:2). It then sends a `PUT` to `http://<ip>/delayhandler/video?action=write&handler=<0-7>&store=frame`. Uploads to the same C100 run one at a time.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Develop
 
-## Deploy on Vercel
+```bash
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Data is written to `./data` (set `DATA_DIR` to change it).
