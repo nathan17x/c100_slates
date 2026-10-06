@@ -14,7 +14,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000 \
+    PORT=6001 \
     HOSTNAME=0.0.0.0 \
     DATA_DIR=/data
 
@@ -23,5 +23,5 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 # Runs as root so it can always write to the bind-mounted /data, whoever owns it on the host.
-EXPOSE 3000
+EXPOSE 6001
 CMD ["node", "server.js"]

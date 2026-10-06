@@ -17,7 +17,7 @@ cd c100-slates
 docker compose up -d --build
 ```
 
-Open `http://<host>:3000`. To use a different port, run `PORT=8080 docker compose up -d`, or put `PORT=8080` in a `.env` file next to `docker-compose.yml`.
+Open `http://<host>:6001`. To use a different port, run `PORT=8080 docker compose up -d`, or put `PORT=8080` in a `.env` file next to `docker-compose.yml`.
 
 The container needs HTTP (port 80) access to the C100s, so the Docker host must be on the same network.
 
